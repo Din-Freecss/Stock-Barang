@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Barang Faroj Network</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            900: '#0b132b',
+                            800: '#111c3a',
+                            700: '#1c2a4e',
+                            600: '#283a66'
+                        },
+                        cyanAccent: '#06b6d4',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b132a;
+            color: #f1f5f9;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b132a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background-color: #fff !important;
+                color: #000 !important;
+            }
+            .print-card {
+                background-color: #fff !important;
+                border: 1px solid #ccc !important;
+                color: #000 !important;
+            }
+            table {
+                color: #000 !important;
+            }
+            th, td {
+                border: 1px solid #ddd !important;
+                color: #000 !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-[#090f20] text-slate-100 flex flex-col">
+
+    <!-- Top Navigation / Header -->
+    <header class="border-b border-slate-800 bg-[#0d162d]/80 backdrop-blur sticky top-0 z-30 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Branding -->
+                <div class="flex items-center space-x-3">
+                    <div class="bg-cyan-500/10 border border-cyan-500/30 p-2.5 rounded-xl text-cyan-400 flex items-center justify-center">
+                        <i data-lucide="boxes" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-1.5">
+                            Stock Barang <span class="text-cyan-400">Faroj Network</span>
+                        </h1>
+                        <p class="text-xs text-slate-400 font-medium">Sistem Informasi Inventory & Stock Opname</p>
+                    </div>
+                </div>
+
+                <!-- Right Header Actions -->
+                <div class="flex items-center space-x-3">
+                    <button onclick="resetDataConfirm()" class="flex items-center space-x-2 px-3.5 py-1.5 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 rounded-lg transition-all shadow-sm">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                        <span>Reset Sample Data</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab Navigation Links -->
+            <div class="flex space-x-8 border-t border-slate-800/60 pt-1">
+                <button onclick="switchTab('tersedia')" id="tab-tersedia" class="tab-btn active border-b-2 border-cyan-400 text-cyan-400 py-3 px-1 text-sm font-semibold flex items-center gap-2 transition-all">
+                    <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                    <span>Barang Tersedia</span>
+                </button>
+                <button onclick="switchTab('masuk')" id="tab-masuk" class="tab-btn border-b-2 border-transparent text-slate-400 hover:text-slate-200 py-3 px-1 text-sm font-semibold flex items-center gap-2 transition-all">
+                    <i data-lucide="arrow-down-left" class="w-4 h-4"></i>
+                    <span>Barang Masuk</span>
+                </button>
+                <button onclick="switchTab('keluar')" id="tab-keluar" class="tab-btn border-b-2 border-transparent text-slate-400 hover:text-slate-200 py-3 px-1 text-sm font-semibold flex items-center gap-2 transition-all">
+                    <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                    <span>Barang Keluar</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- Stat Summary Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 no-print">
+            <!-- Card 1: Total SKU -->
+            <div class="bg-[#111a33] border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between shadow-lg shadow-black/20">
+                <div>
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Unique SKU</p>
+                    <h3 id="stat-sku" class="text-2xl font-bold text-white mt-1">0</h3>
+                </div>
+                <div class="bg-indigo-950/60 border border-indigo-800/40 p-3 rounded-xl text-indigo-400">
+                    <i data-lucide="scan-barcode" class="w-6 h-6"></i>
+                </div>
+            </div>
+
+            <!-- Card 2: Total Unit Tersedia -->
+            <div class="bg-[#111a33] border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between shadow-lg shadow-black/20">
+                <div>
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Unit Tersedia</p>
+                    <h3 id="stat-unit" class="text-2xl font-bold text-cyan-400 mt-1">0</h3>
+                </div>
+                <div class="bg-cyan-950/60 border border-cyan-800/40 p-3 rounded-xl text-cyan-400">
+                    <i data-lucide="package" class="w-6 h-6"></i>
+                </div>
+            </div>
+
+            <!-- Card 3: Total Transaksi Masuk -->
+            <div class="bg-[#111a33] border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between shadow-lg shadow-black/20">
+                <div>
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Trx Masuk</p>
+                    <h3 id="stat-masuk" class="text-2xl font-bold text-emerald-400 mt-1">0</h3>
+                </div>
+                <div class="bg-emerald-950/60 border border-emerald-800/40 p-3 rounded-xl text-emerald-400">
+                    <i data-lucide="arrow-down-circle" class="w-6 h-6"></i>
+                </div>
+            </div>
+
+            <!-- Card 4: Total Transaksi Keluar -->
+            <div class="bg-[#111a33] border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between shadow-lg shadow-black/20">
+                <div>
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Trx Keluar</p>
+                    <h3 id="stat-keluar" class="text-2xl font-bold text-amber-400 mt-1">0</h3>
+                </div>
+                <div class="bg-amber-950/60 border border-amber-800/40 p-3 rounded-xl text-amber-400">
+                    <i data-lucide="arrow-up-circle" class="w-6 h-6"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Description Info Banner / Keterangan Modul -->
+        <div class="bg-[#111a33] border border-slate-800 rounded-2xl p-4 flex items-start gap-3.5 shadow-md no-print">
+            <div class="p-1.5 bg-cyan-500/10 text-cyan-400 rounded-lg shrink-0 mt-0.5">
+                <i data-lucide="info" class="w-5 h-5"></i>
+            </div>
+            <div class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                <span class="font-bold text-cyan-300" id="info-title">Keterangan: Modul Barang Tersedia</span>
+                <p class="mt-0.5 text-slate-400" id="info-desc">
+                    Menampilkan seluruh Master Data barang dan akumulasi jumlah stok aktif di gudang. Anda dapat menambah SKU baru, mengedit informasi barang, serta menghapus item yang tidak digunakan. Jumlah stok di sini terupdate secara otomatis saat transaksi masuk atau keluar disimpan.
+                </p>
+            </div>
+        </div>
+
+        <!-- Main Toolbar (Search & Action Buttons) -->
+        <div class="bg-[#111a33] border border-slate-800 rounded-2xl p-3 sm:p-4 flex flex-col md:flex-row items-center justify-between gap-3 shadow-lg no-print">
+            <!-- Search Bar -->
+            <div class="relative w-full md:w-80">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="searchInput" oninput="renderCurrentTab()" placeholder="Cari berdasarkan SKU atau Nama..." class="w-full pl-10 pr-4 py-2 bg-[#0d162d] border border-slate-700/70 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-all">
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap items-center justify-end gap-2.5 w-full md:w-auto">
+                <!-- Export CSV -->
+                <button onclick="exportCSV()" class="flex items-center space-x-1.5 px-3.5 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl transition-all shadow-sm">
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-400"></i>
+                    <span>Ekspor CSV</span>
+                </button>
+
+                <!-- Print Report -->
+                <button onclick="window.print()" class="flex items-center space-x-1.5 px-3.5 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl transition-all shadow-sm">
+                    <i data-lucide="printer" class="w-4 h-4 text-sky-400"></i>
+                    <span>Cetak Laporan</span>
+                </button>
+
+                <!-- Dynamic Primary Add Button -->
+                <button id="btn-primary-add" onclick="openPrimaryModal()" class="flex items-center space-x-2 px-4 py-2 text-xs font-bold bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-xl transition-all shadow-md shadow-cyan-500/20 active:scale-95">
+                    <i data-lucide="plus" class="w-4 h-4 stroke-[3]"></i>
+                    <span id="btn-primary-add-text">Tambah SKU / Barang Baru</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- PRINT HEADER (Only visible during print) -->
+        <div class="hidden print:block mb-6">
+            <h1 class="text-2xl font-bold text-black">Stock Barang Faroj Network</h1>
+            <p class="text-sm text-gray-600">Sistem Informasi Inventory & Stock Opname Report</p>
+            <p class="text-xs text-gray-500 mt-1" id="print-date"></p>
+            <h2 id="print-tab-title" class="text-lg font-bold mt-4 uppercase border-b pb-1">Daftar Barang Tersedia</h2>
+        </div>
+
+        <!-- Data Table Container -->
+        <div class="bg-[#111a33] border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                    <thead>
+                        <tr id="table-head" class="bg-[#0d162d] text-slate-400 border-b border-slate-800 font-semibold tracking-wider uppercase text-[11px]">
+                            <!-- Dynamic Table Headers via JS -->
+                        </tr>
+                    </thead>
+                    <tbody id="table-body" class="divide-y divide-slate-800/60 text-slate-300">
+                        <!-- Dynamic Rows via JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="hidden flex-col items-center justify-center py-12 px-4 text-center">
+                <div class="bg-slate-800/50 p-4 rounded-full text-slate-500 mb-3">
+                    <i data-lucide="inbox" class="w-8 h-8"></i>
+                </div>
+                <p class="text-slate-400 font-medium">Tidak ada data yang ditemukan.</p>
+                <p class="text-xs text-slate-500 mt-1">Coba sesuaikan kata kunci pencarian atau tambah data baru.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/80 py-4 text-center text-xs text-slate-500 no-print mt-auto">
+        &copy; <span id="year"></span> Faroj Network Inventory Management System. All Rights Reserved.
+    </footer>
+
+    <!-- MODAL: Tambah / Edit Barang Tersedia -->
+    <div id="modal-barang" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-[#111a33] border border-slate-800 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transform transition-all">
+            <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
+                <h3 id="modal-barang-title" class="text-lg font-bold text-white flex items-center gap-2">
+                    <i data-lucide="box" class="w-5 h-5 text-cyan-400"></i>
+                    <span>Tambah Barang Baru</span>
+                </h3>
+                <button onclick="closeModal('modal-barang')" class="text-slate-400 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="form-barang" onsubmit="handleSaveBarang(event)" class="p-6 space-y-4">
+                <input type="hidden" id="barang-id">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Kode SKU <span class="text-rose-500">*</span></label>
+                    <input type="text" id="barang-sku" required placeholder="Contoh: NTW-001" class="w-full px-3.5 py-2 bg-[#0d162d] border border-slate-700 rounded-xl text-sm text-slate-100 focus:outline-none focus:border-cyan-500 uppercase">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Barang <span class="text-rose-500">*</span></label>
+                    <input type="text" id="barang-nama" required placeholder="Contoh: MikroTik RB4011iGS+RM" class="w-full px-3.5 py-2 bg-[#0d162d] border border-slate-700 rounded-xl text-sm text-slate-100 focus:outline-none focus:border-cyan-500">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Kategori</label>
+                        <input type="text" id="barang-kategori" placeholder="Contoh: Router / Switch" class="w-full px-3.5 py-2 bg-[#0d162d] border border-slate-700 rounded-xl text-sm text-slate-100 focus:outline-none focus:border-cyan-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Satuan</label>
+                        <input type="text" id="barang-satuan" placeholder="Unit / Roll / Pcs" value="Unit" class="w-full px-3.5 py-2 bg-[#0d162d] border border-slate-700 rounded-xl text-sm text-slate-100 focus:outline-none focus:border-cyan-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Jumlah Stok AWAL</label>
+                        <input type="number" id="barang-stok" min="0" value="0" class="w-full px-3.5 py-2 bg-[#0d162d] border border-slate-700 rounded-xl text-sm text-slate-100 focus:outline-none focus:border-cyan-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Keterangan / Lokasi</label>
+                        <input type="text" id="barang-keterangan" placeholder="Contoh: Rak Server A-1" class="w-full px-3.5 py-2 bg-[#0d162d] border border-slate-700 rounded-xl text-sm text-slate-100 focus:outline-none focus:border-cyan-500">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
+                    <button type="button" onclick="closeModal('modal-barang')" class="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 rounded-xl">Batal</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-bold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-xl shadow-md">Simpan Barang</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Transaksi Masuk / Keluar -->
+    <div id="modal-trx" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-[#111a33] border border-slate-800 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transform transition-all">
+            <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
+                <h3 id="modal-trx-title" class="text-lg font-bold text-white flex items-center gap-2">
+                    <i data-lucide="arrow-down-left" id="modal-trx-icon" class="w-5 h-5 text-emerald-400"></i>
+                    <span id="modal-trx-heading">Catat Barang Masuk</span>
+                </h3>
+                <button onclick="closeModal('modal-trx')" class="text-slate-400 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="form-trx" onsubmit="handleSaveTrx(event)" class="p-6 space-y-4">
+                <input type="hidden" id="trx-type" value="masuk">
+                
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Pilih Barang / SKU <span class="text-rose-500">*</span></label>
+                    <select id="trx-sku-select" required onchange="handleTrxSkuChange(this.value)" class="w-full px-3.5 py-2 bg-[#0d162d] border border-slate-700 rounded-xl text-sm text-slate-100 focus:outline-none focus:border-cyan-500">
+                        <!-- Options generated dynamically -->
+                    </select>
+                </div>
+
+                <div id="trx-new-item-fields" class="space-y-3 p-3 bg-slate-900/50 border border-slate-800 rounded-xl hidden">
+                    <p class="text-xs text-amber-400 font-semibold flex items-center gap-1">
+                        <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+                        Barang dengan SKU baru akan dibuat secara otomatis di Master Data!
+                    </p>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Input SKU Baru</label>
+                        <input type="text" id="trx-sku-custom" placeholder="Kode SKU Baru..." class="w-full px-3 py-1.5 bg-[#0d162d] border border-slate-700 rounded-lg text-xs uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Barang Baru</label>
+                        <input type="text" id="trx-nama-custom" placeholder="Nama Barang..." class="w-full px-3 py-1.5 bg-[#0d162d] border border-slate-700 rounded-lg text-xs">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Jumlah (Qty) <span class="text-rose-500">*</span></label>
+                        <input type="number" id="trx-qty" min="1" value="1" required class="w-full px-3.5 py-2 bg-[#0d162d] border border-slate-700 rounded-xl text-sm text-slate-100 focus:outline-none focus:border-cyan-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Tanggal Transaksi <span class="text-rose-500">*</span></label>
+                        <input type="date" id="trx-date" required class="w-full px-3.5 py-2 bg-[#0d162d] border border-slate-700 rounded-xl text-sm text-slate-100 focus:outline-none focus:border-cyan-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Keterangan / Penerima / Supplier</label>
+                    <textarea id="trx-keterangan" rows="2" placeholder="Catatan transaksi..." class="w-full px-3.5 py-2 bg-[#0d162d] border border-slate-700 rounded-xl text-sm text-slate-100 focus:outline-none focus:border-cyan-500"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
+                    <button type="button" onclick="closeModal('modal-trx')" class="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 rounded-xl">Batal</button>
+                    <button type="submit" id="btn-save-trx" class="px-5 py-2 text-xs font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 rounded-xl shadow-md">Simpan Transaksi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-800 text-white border border-slate-700 px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 pointer-events-none">
+        <div id="toast-icon" class="text-emerald-400">
+            <i data-lucide="check-circle" class="w-5 h-5"></i>
+        </div>
+        <p id="toast-message" class="text-xs sm:text-sm font-medium"></p>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // Sample Initial Data matching screenshot precisely
+        const initialSampleBarang = [
+            { id: '1', sku: 'NTW-001', nama: 'MikroTik RB4011iGS+RM', kategori: 'Router', stok: 12, satuan: 'Unit', keterangan: 'Rak Server Utama A-1' },
+            { id: '2', sku: 'NTW-002', nama: 'Cisco Catalyst 2960-X Switch 24 Port', kategori: 'Switch', stok: 8, satuan: 'Unit', keterangan: 'Rak Server Utama B-2' },
+            { id: '3', sku: 'NTW-003', nama: 'Ubiquiti UniFi AP AC Pro', kategori: 'Access Point', stok: 25, satuan: 'Unit', keterangan: 'Gudang Stok Lantai 2' },
+            { id: '4', sku: 'NTW-004', nama: 'Kabel UTP Cat6 Belden 305M', kategori: 'Kabel', stok: 15, satuan: 'Roll', keterangan: 'Gudang Material' }
+        ];
+
+        const initialSampleMasuk = [
+            { id: 'm1', sku: 'NTW-001', nama: 'MikroTik RB4011iGS+RM', qty: 5, tanggal: '2026-10-15', keterangan: 'Pengadaan PT Sinar Utama' },
+            { id: 'm2', sku: 'NTW-003', nama: 'Ubiquiti UniFi AP AC Pro', qty: 10, tanggal: '2026-10-18', keterangan: 'Restock Suplier Ubiquiti' }
+        ];
+
+        const initialSampleKeluar = [
+            { id: 'k1', sku: 'NTW-002', nama: 'Cisco Catalyst 2960-X Switch 24 Port', qty: 2, tanggal: '2026-10-19', keterangan: 'Pemasangan Project Client XYZ' }
+        ];
+
+        // Global State
+        let currentTab = 'tersedia'; // 'tersedia', 'masuk', 'keluar'
+        let inventoryData = [];
+        let masukData = [];
+        let keluarData = [];
+
+        // Load & Initialize Data
+        function initApp() {
+            const savedBarang = localStorage.getItem('faroj_inventory');
+            const savedMasuk = localStorage.getItem('faroj_masuk');
+            const savedKeluar = localStorage.getItem('faroj_keluar');
+
+            inventoryData = savedBarang ? JSON.parse(savedBarang) : [...initialSampleBarang];
+            masukData = savedMasuk ? JSON.parse(savedMasuk) : [...initialSampleMasuk];
+            keluarData = savedKeluar ? JSON.parse(savedKeluar) : [...initialSampleKeluar];
+
+            document.getElementById('year').textContent = new Date().getFullYear();
+            document.getElementById('print-date').textContent = 'Dicetak pada: ' + new Date().toLocaleString('id-ID');
+            document.getElementById('trx-date').valueAsDate = new Date();
+
+            updateStats();
+            renderCurrentTab();
+            lucide.createIcons();
+        }
+
+        // Save State to LocalStorage
+        function saveState() {
+            localStorage.setItem('faroj_inventory', JSON.stringify(inventoryData));
+            localStorage.setItem('faroj_masuk', JSON.stringify(masukData));
+            localStorage.setItem('faroj_keluar', JSON.stringify(keluarData));
+            updateStats();
+        }
+
+        // Reset Sample Data
+        function resetDataConfirm() {
+            if (confirm('Apakah Anda yakin ingin mengembalikan seluruh data ke sampel awal?')) {
+                localStorage.removeItem('faroj_inventory');
+                localStorage.removeItem('faroj_masuk');
+                localStorage.removeItem('faroj_keluar');
+                inventoryData = [...initialSampleBarang];
+                masukData = [...initialSampleMasuk];
+                keluarData = [...initialSampleKeluar];
+                saveState();
+                renderCurrentTab();
+                showToast('Data berhasil di-reset ke data sampel awal.');
+            }
+        }
+
+        // Update Summary Stats Header
+        function updateStats() {
+            const totalSku = inventoryData.length;
+            const totalUnit = inventoryData.reduce((acc, item) => acc + (parseInt(item.stok) || 0), 0);
+            const totalMasuk = masukData.length;
+            const totalKeluar = keluarData.length;
+
+            document.getElementById('stat-sku').textContent = totalSku;
+            document.getElementById('stat-unit').textContent = totalUnit;
+            document.getElementById('stat-masuk').textContent = totalMasuk;
+            document.getElementById('stat-keluar').textContent = totalKeluar;
+        }
+
+        // Switch Active Tab
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Highlight Tab Buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-cyan-400', 'text-cyan-400');
+                btn.classList.add('border-transparent', 'text-slate-400');
+            });
+
+            const activeBtn = document.getElementById(`tab-${tab}`);
+            activeBtn.classList.add('border-cyan-400', 'text-cyan-400');
+            activeBtn.classList.remove('border-transparent', 'text-slate-400');
+
+            // Update Info Module Description
+            const infoTitle = document.getElementById('info-title');
+            const infoDesc = document.getElementById('info-desc');
+            const primaryAddText = document.getElementById('btn-primary-add-text');
+            const printTabTitle = document.getElementById('print-tab-title');
+
+            if (tab === 'tersedia') {
+                infoTitle.textContent = 'Keterangan: Modul Barang Tersedia';
+                infoDesc.textContent = 'Menampilkan seluruh Master Data barang dan akumulasi jumlah stok aktif di gudang. Anda dapat menambah SKU baru, mengedit informasi barang, serta menghapus item yang tidak digunakan. Jumlah stok di sini terupdate secara otomatis saat transaksi masuk atau keluar disimpan.';
+                primaryAddText.textContent = 'Tambah SKU / Barang Baru';
+                printTabTitle.textContent = 'Daftar Barang Tersedia';
+            } else if (tab === 'masuk') {
+                infoTitle.textContent = 'Keterangan: Modul Barang Masuk';
+                infoDesc.textContent = 'Mencatat riwayat penerimaan barang ke gudang. Menginput barang masuk akan secara otomatis menambahkan/memperbarui stok pada Daftar Barang Tersedia.';
+                primaryAddText.textContent = 'Catat Barang Masuk';
+                printTabTitle.textContent = 'Daftar Barang Masuk (Riwayat Penerimaan)';
+            } else if (tab === 'keluar') {
+                infoTitle.textContent = 'Keterangan: Modul Barang Keluar';
+                infoDesc.textContent = 'Mencatat riwayat pengeluaran barang dari gudang. Menginput barang keluar akan secara otomatis mengurangkan stok pada Daftar Barang Tersedia.';
+                primaryAddText.textContent = 'Catat Barang Keluar';
+                printTabTitle.textContent = 'Daftar Barang Keluar (Riwayat Pengeluaran)';
+            }
+
+            renderCurrentTab();
+        }
+
+        // Render Current Tab Table
+        function renderCurrentTab() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const tableHead = document.getElementById('table-head');
+            const tableBody = document.getElementById('table-body');
+            const emptyState = document.getElementById('empty-state');
+
+            tableBody.innerHTML = '';
+
+            if (currentTab === 'tersedia') {
+                tableHead.innerHTML = `
+                    <th class="py-3.5 px-4">SKU</th>
+                    <th class="py-3.5 px-4">Nama Barang</th>
+                    <th class="py-3.5 px-4">Kategori</th>
+                    <th class="py-3.5 px-4">Stok</th>
+                    <th class="py-3.5 px-4">Satuan</th>
+                    <th class="py-3.5 px-4">Keterangan</th>
+                    <th class="py-3.5 px-4 text-center no-print">Aksi</th>
+                `;
+
+                const filtered = inventoryData.filter(i => 
+                    i.sku.toLowerCase().includes(query) || i.nama.toLowerCase().includes(query) || (i.kategori && i.kategori.toLowerCase().includes(query))
+                );
+
+                if (filtered.length === 0) {
+                    emptyState.classList.remove('hidden');
+                    emptyState.classList.add('flex');
+                    return;
+                } else {
+                    emptyState.classList.add('hidden');
+                    emptyState.classList.remove('flex');
+                }
+
+                filtered.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-800/40 transition-colors border-b border-slate-800/50';
+                    tr.innerHTML = `
+                        <td class="py-3.5 px-4 font-mono font-semibold text-cyan-400">${escapeHtml(item.sku)}</td>
+                        <td class="py-3.5 px-4 font-bold text-white">${escapeHtml(item.nama)}</td>
+                        <td class="py-3.5 px-4"><span class="px-2.5 py-1 bg-slate-800/80 border border-slate-700/80 text-slate-300 rounded-md text-xs">${escapeHtml(item.kategori || '-')}</span></td>
+                        <td class="py-3.5 px-4 font-bold text-emerald-400 text-base">${item.stok}</td>
+                        <td class="py-3.5 px-4 text-slate-300">${escapeHtml(item.satuan || 'Unit')}</td>
+                        <td class="py-3.5 px-4 text-slate-400">${escapeHtml(item.keterangan || '-')}</td>
+                        <td class="py-3.5 px-4 text-center no-print">
+                            <div class="flex items-center justify-center space-x-2">
+                                <button onclick="editBarang('${item.id}')" class="p-1.5 hover:bg-slate-700/60 rounded-lg text-slate-400 hover:text-cyan-400 transition-all" title="Edit Barang">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="deleteBarang('${item.id}')" class="p-1.5 hover:bg-rose-950/50 rounded-lg text-slate-400 hover:text-rose-400 transition-all" title="Hapus SKU">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+
+            } else if (currentTab === 'masuk') {
+                tableHead.innerHTML = `
+                    <th class="py-3.5 px-4">Tanggal</th>
+                    <th class="py-3.5 px-4">SKU</th>
+                    <th class="py-3.5 px-4">Nama Barang</th>
+                    <th class="py-3.5 px-4">Jumlah Masuk</th>
+                    <th class="py-3.5 px-4">Keterangan / Supplier</th>
+                    <th class="py-3.5 px-4 text-center no-print">Aksi</th>
+                `;
+
+                const filtered = masukData.filter(m => 
+                    m.sku.toLowerCase().includes(query) || m.nama.toLowerCase().includes(query) || (m.keterangan && m.keterangan.toLowerCase().includes(query))
+                );
+
+                if (filtered.length === 0) {
+                    emptyState.classList.remove('hidden');
+                    emptyState.classList.add('flex');
+                    return;
+                } else {
+                    emptyState.classList.add('hidden');
+                    emptyState.classList.remove('flex');
+                }
+
+                filtered.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-800/40 transition-colors border-b border-slate-800/50';
+                    tr.innerHTML = `
+                        <td class="py-3.5 px-4 text-slate-400">${escapeHtml(item.tanggal)}</td>
+                        <td class="py-3.5 px-4 font-mono font-semibold text-cyan-400">${escapeHtml(item.sku)}</td>
+                        <td class="py-3.5 px-4 font-bold text-white">${escapeHtml(item.nama)}</td>
+                        <td class="py-3.5 px-4 font-bold text-emerald-400">+${item.qty}</td>
+                        <td class="py-3.5 px-4 text-slate-400">${escapeHtml(item.keterangan || '-')}</td>
+                        <td class="py-3.5 px-4 text-center no-print">
+                            <button onclick="deleteTrxMasuk('${item.id}')" class="p-1.5 hover:bg-rose-950/50 rounded-lg text-slate-400 hover:text-rose-400 transition-all" title="Hapus Catatan (Stok akan dikurangi)">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+
+            } else if (currentTab === 'keluar') {
+                tableHead.innerHTML = `
+                    <th class="py-3.5 px-4">Tanggal</th>
+                    <th class="py-3.5 px-4">SKU</th>
+                    <th class="py-3.5 px-4">Nama Barang</th>
+                    <th class="py-3.5 px-4">Jumlah Keluar</th>
+                    <th class="py-3.5 px-4">Keterangan / Project</th>
+                    <th class="py-3.5 px-4 text-center no-print">Aksi</th>
+                `;
+
+                const filtered = keluarData.filter(k => 
+                    k.sku.toLowerCase().includes(query) || k.nama.toLowerCase().includes(query) || (k.keterangan && k.keterangan.toLowerCase().includes(query))
+                );
+
+                if (filtered.length === 0) {
+                    emptyState.classList.remove('hidden');
+                    emptyState.classList.add('flex');
+                    return;
+                } else {
+                    emptyState.classList.add('hidden');
+                    emptyState.classList.remove('flex');
+                }
+
+                filtered.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-800/40 transition-colors border-b border-slate-800/50';
+                    tr.innerHTML = `
+                        <td class="py-3.5 px-4 text-slate-400">${escapeHtml(item.tanggal)}</td>
+                        <td class="py-3.5 px-4 font-mono font-semibold text-cyan-400">${escapeHtml(item.sku)}</td>
+                        <td class="py-3.5 px-4 font-bold text-white">${escapeHtml(item.nama)}</td>
+                        <td class="py-3.5 px-4 font-bold text-rose-400">-${item.qty}</td>
+                        <td class="py-3.5 px-4 text-slate-400">${escapeHtml(item.keterangan || '-')}</td>
+                        <td class="py-3.5 px-4 text-center no-print">
+                            <button onclick="deleteTrxKeluar('${item.id}')" class="p-1.5 hover:bg-rose-950/50 rounded-lg text-slate-400 hover:text-rose-400 transition-all" title="Hapus Catatan (Stok akan dikembalikan)">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+            }
+
+            lucide.createIcons();
+        }
+
+        // Trigger Add Modal dynamically depending on current active tab
+        function openPrimaryModal() {
+            if (currentTab === 'tersedia') {
+                openModalBarang();
+            } else {
+                openModalTrx(currentTab);
+            }
+        }
+
+        // Open Modal: Barang Baru / Edit
+        function openModalBarang(editItem = null) {
+            document.getElementById('form-barang').reset();
+            const modalTitle = document.getElementById('modal-barang-title');
+
+            if (editItem) {
+                modalTitle.innerHTML = `<i data-lucide="edit" class="w-5 h-5 text-cyan-400"></i> Edit Informasi SKU`;
+                document.getElementById('barang-id').value = editItem.id;
+                document.getElementById('barang-sku').value = editItem.sku;
+                document.getElementById('barang-nama').value = editItem.nama;
+                document.getElementById('barang-kategori').value = editItem.kategori || '';
+                document.getElementById('barang-satuan').value = editItem.satuan || 'Unit';
+                document.getElementById('barang-stok').value = editItem.stok;
+                document.getElementById('barang-keterangan').value = editItem.keterangan || '';
+            } else {
+                modalTitle.innerHTML = `<i data-lucide="box" class="w-5 h-5 text-cyan-400"></i> Tambah SKU / Barang Baru`;
+                document.getElementById('barang-id').value = '';
+            }
+
+            document.getElementById('modal-barang').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        // Edit Barang Action
+        function editBarang(id) {
+            const item = inventoryData.find(i => i.id === id);
+            if (item) openModalBarang(item);
+        }
+
+        // Delete Barang Action
+        function deleteBarang(id) {
+            const item = inventoryData.find(i => i.id === id);
+            if (!item) return;
+
+            if (confirm(`Penghapusan SKU [${item.sku}] akan menghapus master barang ini. Lanjutkan?`)) {
+                inventoryData = inventoryData.filter(i => i.id !== id);
+                saveState();
+                renderCurrentTab();
+                showToast(`SKU ${item.sku} berhasil dihapus.`);
+            }
+        }
+
+        // Save Master Barang Form
+        function handleSaveBarang(e) {
+            e.preventDefault();
+            const id = document.getElementById('barang-id').value;
+            const sku = document.getElementById('barang-sku').value.trim().toUpperCase();
+            const nama = document.getElementById('barang-nama').value.trim();
+            const kategori = document.getElementById('barang-kategori').value.trim();
+            const satuan = document.getElementById('barang-satuan').value.trim();
+            const stok = parseInt(document.getElementById('barang-stok').value) || 0;
+            const keterangan = document.getElementById('barang-keterangan').value.trim();
+
+            if (id) {
+                // Update Existing Item
+                const index = inventoryData.findIndex(i => i.id === id);
+                if (index !== -1) {
+                    inventoryData[index] = { ...inventoryData[index], sku, nama, kategori, satuan, stok, keterangan };
+                    showToast(`Barang ${sku} berhasil diperbarui.`);
+                }
+            } else {
+                // Check for duplicate SKU
+                if (inventoryData.some(i => i.sku.toUpperCase() === sku)) {
+                    alert('Kode SKU sudah ada! Gunakan SKU lain atau edit barang yang sudah ada.');
+                    return;
+                }
+                const newItem = {
+                    id: Date.now().toString(),
+                    sku,
+                    nama,
+                    kategori: kategori || 'Umum',
+                    satuan: satuan || 'Unit',
+                    stok,
+                    keterangan
+                };
+                inventoryData.push(newItem);
+                showToast(`Barang baru ${sku} berhasil ditambahkan.`);
+            }
+
+            saveState();
+            closeModal('modal-barang');
+            renderCurrentTab();
+        }
+
+        // Open Modal: Transaksi Masuk / Keluar
+        function openModalTrx(type) {
+            document.getElementById('form-trx').reset();
+            document.getElementById('trx-type').value = type;
+            document.getElementById('trx-date').valueAsDate = new Date();
+
+            const heading = document.getElementById('modal-trx-heading');
+            const icon = document.getElementById('modal-trx-icon');
+            const btnSave = document.getElementById('btn-save-trx');
+            const skuSelect = document.getElementById('trx-sku-select');
+
+            // Populate SKU Select options
+            skuSelect.innerHTML = '<option value="">-- Pilih Barang Tersedia --</option>';
+            inventoryData.forEach(item => {
+                skuSelect.innerHTML += `<option value="${item.sku}">${item.sku} - ${item.nama} (Stok: ${item.stok})</option>`;
+            });
+
+            if (type === 'masuk') {
+                heading.textContent = 'Catat Barang Masuk';
+                icon.className = 'w-5 h-5 text-emerald-400';
+                btnSave.className = 'px-5 py-2 text-xs font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 rounded-xl shadow-md';
+                skuSelect.innerHTML += '<option value="NEW_ITEM">+ SKU/Barang Baru Baru +</option>';
+            } else {
+                heading.textContent = 'Catat Barang Keluar';
+                icon.className = 'w-5 h-5 text-amber-400';
+                btnSave.className = 'px-5 py-2 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl shadow-md';
+            }
+
+            handleTrxSkuChange('');
+            document.getElementById('modal-trx').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function handleTrxSkuChange(val) {
+            const newItemFields = document.getElementById('trx-new-item-fields');
+            if (val === 'NEW_ITEM') {
+                newItemFields.classList.remove('hidden');
+                document.getElementById('trx-sku-custom').setAttribute('required', 'true');
+                document.getElementById('trx-nama-custom').setAttribute('required', 'true');
+            } else {
+                newItemFields.classList.add('hidden');
+                document.getElementById('trx-sku-custom').removeAttribute('required');
+                document.getElementById('trx-nama-custom').removeAttribute('required');
+            }
+        }
+
+        // Save Transaction Form (Masuk / Keluar)
+        function handleSaveTrx(e) {
+            e.preventDefault();
+            const type = document.getElementById('trx-type').value;
+            const selectedSku = document.getElementById('trx-sku-select').value;
+            const qty = parseInt(document.getElementById('trx-qty').value) || 0;
+            const date = document.getElementById('trx-date').value;
+            const keterangan = document.getElementById('trx-keterangan').value.trim();
+
+            if (qty <= 0) {
+                alert('Jumlah transaksi harus lebih dari 0.');
+                return;
+            }
+
+            let sku = selectedSku;
+            let nama = '';
+
+            if (selectedSku === 'NEW_ITEM') {
+                sku = document.getElementById('trx-sku-custom').value.trim().toUpperCase();
+                nama = document.getElementById('trx-nama-custom').value.trim();
+
+                if (!sku || !nama) {
+                    alert('Harap isi SKU Baru dan Nama Barang Baru.');
+                    return;
+                }
+
+                // Create new item in Master Data automatically
+                const existing = inventoryData.find(i => i.sku === sku);
+                if (!existing) {
+                    inventoryData.push({
+                        id: Date.now().toString(),
+                        sku,
+                        nama,
+                        kategori: 'Baru',
+                        stok: 0,
+                        satuan: 'Unit',
+                        keterangan: 'Otomatis dibuat via transaksi masuk'
+                    });
+                }
+            } else {
+                const item = inventoryData.find(i => i.sku === selectedSku);
+                if (!item) {
+                    alert('Harap pilih barang terlebih dahulu.');
+                    return;
+                }
+                nama = item.nama;
+            }
+
+            // Find target item in inventory to update stock
+            const targetItem = inventoryData.find(i => i.sku === sku);
+
+            if (type === 'masuk') {
+                // Increase stock
+                if (targetItem) {
+                    targetItem.stok += qty;
+                }
+                masukData.unshift({
+                    id: Date.now().toString(),
+                    sku,
+                    nama,
+                    qty,
+                    tanggal: date,
+                    keterangan
+                });
+                showToast(`Barang masuk (${qty} unit ${sku}) telah dicatat & stok ditambahkan.`);
+            } else if (type === 'keluar') {
+                // Check if sufficient stock exists
+                if (targetItem) {
+                    if (targetItem.stok < qty) {
+                        alert(`Stok tidak mencukupi! Stok saat ini untuk ${sku} hanya ${targetItem.stok} unit.`);
+                        return;
+                    }
+                    targetItem.stok -= qty;
+                } else {
+                    alert('Barang tidak ditemukan di Daftar Barang Tersedia.');
+                    return;
+                }
+
+                keluarData.unshift({
+                    id: Date.now().toString(),
+                    sku,
+                    nama,
+                    qty,
+                    tanggal: date,
+                    keterangan
+                });
+                showToast(`Barang keluar (${qty} unit ${sku}) telah dicatat & stok dikurangi.`);
+            }
+
+            saveState();
+            closeModal('modal-trx');
+            renderCurrentTab();
+        }
+
+        // Delete incoming transaction & revert stock
+        function deleteTrxMasuk(id) {
+            const trx = masukData.find(m => m.id === id);
+            if (!trx) return;
+
+            if (confirm(`Hapus catatan transaksi masuk [${trx.sku}] Qty: ${trx.qty}? (Stok pada Daftar Barang Tersedia akan berkurang ${trx.qty})`)) {
+                const item = inventoryData.find(i => i.sku === trx.sku);
+                if (item) {
+                    item.stok = Math.max(0, item.stok - trx.qty);
+                }
+                masukData = masukData.filter(m => m.id !== id);
+                saveState();
+                renderCurrentTab();
+                showToast('Transaksi masuk dihapus & stok telah disesuaikan kembali.');
+            }
+        }
+
+        // Delete outgoing transaction & revert stock
+        function deleteTrxKeluar(id) {
+            const trx = keluarData.find(k => k.id === id);
+            if (!trx) return;
+
+            if (confirm(`Hapus catatan transaksi keluar [${trx.sku}] Qty: ${trx.qty}? (Stok pada Daftar Barang Tersedia akan bertambah ${trx.qty})`)) {
+                const item = inventoryData.find(i => i.sku === trx.sku);
+                if (item) {
+                    item.stok += trx.qty;
+                }
+                keluarData = keluarData.filter(k => k.id !== id);
+                saveState();
+                renderCurrentTab();
+                showToast('Transaksi keluar dihapus & stok telah dikembalikan.');
+            }
+        }
+
+        // Modal Utility
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        // Toast Notification System
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const message = document.getElementById('toast-message');
+            message.textContent = msg;
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Export Data to CSV
+        function exportCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            let filename = `Stock_Faroj_Network_${currentTab}_${new Date().toISOString().slice(0, 10)}.csv`;
+
+            if (currentTab === 'tersedia') {
+                csvContent += "SKU,Nama Barang,Kategori,Stok,Satuan,Keterangan\n";
+                inventoryData.forEach(i => {
+                    csvContent += `"${i.sku}","${i.nama}","${i.kategori || ''}",${i.stok},"${i.satuan || ''}","${i.keterangan || ''}"\n`;
+                });
+            } else if (currentTab === 'masuk') {
+                csvContent += "Tanggal,SKU,Nama Barang,Jumlah Masuk,Keterangan\n";
+                masukData.forEach(m => {
+                    csvContent += `"${m.tanggal}","${m.sku}","${m.nama}",${m.qty},"${m.keterangan || ''}"\n`;
+                });
+            } else if (currentTab === 'keluar') {
+                csvContent += "Tanggal,SKU,Nama Barang,Jumlah Keluar,Keterangan\n";
+                keluarData.forEach(k => {
+                    csvContent += `"${k.tanggal}","${k.sku}","${k.nama}",${k.qty},"${k.keterangan || ''}"\n`;
+                });
+            }
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast(`Data ${currentTab} berhasil diekspor ke CSV.`);
+        }
+
+        // Escape HTML Guard helper
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, "&amp;")
+                      .replace(/</g, "&lt;")
+                      .replace(/>/g, "&gt;")
+                      .replace(/"/g, "&quot;")
+                      .replace(/'/g, "&#039;");
+        }
+
+        // Initialize App on DOM Load
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
